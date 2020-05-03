@@ -7,7 +7,9 @@ import tensorflow as tf
 from methods.color.color import get_dominent_colors
 from methods.lightpose.pose import LightPose
 from methods.opt import opt
+from methods.sat.sat import Sat_SVM
 from methods.scale.scale import PoseRecog
+from methods.tone.tone import ToneClassifier
 
 args = opt
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -19,12 +21,14 @@ class Analyser(object):
     def __init__(self, batch_size, cluster_num=5):
         self.cluster_num = cluster_num
         self.batch_size = batch_size
-        self.light_reader = LightPose(self.batch_size)
+        self.light_reader = LightPose(batch_size)
         self.pose_reader = PoseRecog()
+        self.tone_reader = ToneClassifier(batch_size)
+        self.sat_reader = Sat_SVM()
         print('Analyser built.')
 
     def get_shot_scale(self, imgs):
-        self.pose_reader.get_pose(imgs)
+        return self.pose_reader.get_pose(imgs)
 
     def get_light_pose(self, imgs):
         return self.light_reader.get_lightpose(imgs)
@@ -35,6 +39,12 @@ class Analyser(object):
         for k in range(data_len):
             color_plate[k] = get_dominent_colors(imgs[k], self.cluster_num)
         return color_plate
+
+    def get_tone(self, imgs):
+        return self.tone_reader.get_tone_class(imgs)
+
+    def get_saturation(self, imgs):
+        return self.sat_reader.get_sat(imgs)
 
 
 def read_block(cap, win_len, sample_interval=1):
@@ -57,8 +67,10 @@ def main():
     cap = cv.VideoCapture(args.video_path)
     fps = cap.get(cv.CAP_PROP_FPS)
 
+    print('*****************************************************')
     print('Video Name: {:s}\nFPS: {:.2f}\nSample Interval: {:d}\nSample Rate: {:.2f}\nWindow Length: {:d}\nBatch Size: {:d}'.format(
         args.video_path, fps, args.sample_interval, fps / args.sample_interval, args.win_len, args.batch_size))
+    print('*****************************************************')
 
     analyser = Analyser(args.batch_size)
 
@@ -72,6 +84,10 @@ def main():
         print('got light pose')
         analyser.get_shot_scale(imgs)
         print('got shot scale')
+        analyser.get_tone(imgs)
+        print('got tone type')
+        analyser.get_saturation(imgs)
+        print('got sat type')
 
     cap.release()
 

@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from scipy.ndimage import maximum_filter
 
-from ..opt import opt
+from ...opt import opt
 
 
 def to_torch(ndarray):

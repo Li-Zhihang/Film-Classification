@@ -5,7 +5,7 @@ import os
 import numpy as np
 import torch
 
-from .opt import opt
+from ..opt import opt
 
 ''' Constant Configuration '''
 delta1 = 1

@@ -1,8 +1,9 @@
 import torch
 
-from .opt import opt
+from ..opt import opt
 from .pose_utils import (DataWriter, DetectionLoader, DetectionProcessor,
                          ImageLoader, InferenNet_fast, getTime)
+from .pPose_nms import write_json
 from .read_pose import read_pose
 
 args = opt
@@ -82,5 +83,6 @@ class PoseRecog(object):
             pass
         self.writer.stop()
         final_result = self.writer.results()
-        # write_json(final_result, args.outputpath)
+        if args.write_json:
+            write_json(final_result, args.outputpath)
         return read_pose(final_result, height)

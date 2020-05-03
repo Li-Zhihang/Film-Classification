@@ -8,8 +8,6 @@ from .utils import LenetBuilder, crop_face_batch
 class LightPose(object):
     def __init__(self, batch_size):
         self.batch_size = batch_size
-
-    def build(self):
         K.set_image_data_format('channels_first')
 
         self.model = LenetBuilder()

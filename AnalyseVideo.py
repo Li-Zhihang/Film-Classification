@@ -1,4 +1,3 @@
-import argparse
 import os
 
 import cv2.cv2 as cv
@@ -7,8 +6,10 @@ import tensorflow as tf
 
 from methods.color.color import get_dominent_colors
 from methods.lightpose.pose import LightPose
+from methods.opt import opt
 from methods.scale.scale import PoseRecog
 
+args = opt
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -19,9 +20,6 @@ class Analyser(object):
         self.cluster_num = cluster_num
         self.batch_size = batch_size
         self.light_reader = LightPose(self.batch_size)
-
-    def build(self):
-        self.light_reader.build()
         self.pose_reader = PoseRecog()
         print('Analyser built.')
 
@@ -39,8 +37,7 @@ class Analyser(object):
         return color_plate
 
 
-def read_block(cap, win_len):
-    eof_flag = False
+def read_block(cap, win_len, sample_interval=1):
     width = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
     height = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
 
@@ -48,25 +45,27 @@ def read_block(cap, win_len):
     for k in range(win_len):
         _, img = cap.read()
         if img is None:
-            eof_flag = True
-            break
+            sample_index = [x for x in range(0, k, sample_interval)]
+            return imgs[sample_index], True
         imgs[k] = img
 
-    if eof_flag:
-        imgs = imgs[:k]
-
-    return imgs, eof_flag
+    sample_index = [x for x in range(0, win_len, sample_interval)]
+    return imgs[sample_index], False
 
 
-def main(args):
+def main():
     cap = cv.VideoCapture(args.video_path)
+    fps = cap.get(cv.CAP_PROP_FPS)
+
+    print('Video Name: {:s}\nFPS: {:.2f}\nSample Interval: {:d}\nSample Rate: {:.2f}\nWindow Length: {:d}\nBatch Size: {:d}'.format(
+        args.video_path, fps, args.sample_interval, fps / args.sample_interval, args.win_len, args.batch_size))
+
     analyser = Analyser(args.batch_size)
-    analyser.build()
 
     print('Start reading video...')
     eof_flag = False
     while not eof_flag:
-        imgs, eof_flag = read_block(cap, args.win_len)
+        imgs, eof_flag = read_block(cap, args.win_len, args.sample_interval)
         analyser.get_colors(imgs)
         print('got color')
         analyser.get_light_pose(imgs)
@@ -78,13 +77,8 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--video_path', type=str, default='./test.avi')
-    parser.add_argument('--batch_size', type=int, default=2)
-    parser.add_argument('--win_len', type=int, default=100)
-    args = parser.parse_args()
 
     if not os.path.exists(args.video_path):
         raise FileNotFoundError('Cannot find the video.')
 
-    main(args)
+    main()

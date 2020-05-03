@@ -10,8 +10,8 @@ import torch
 from torch import multiprocessing as mp
 from torch import nn
 
+from ..opt import opt
 from .matching import candidate_reselect as matching
-from .opt import opt
 from .pPose_nms import pose_nms
 from .SPPE.fastpose import FastPose
 from .SPPE.sppe_utils import (cropBox, getMultiPeakPrediction, getPrediction,

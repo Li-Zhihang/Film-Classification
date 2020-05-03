@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ..opt import opt
+from ...opt import opt
 
 
 class SELayer(nn.Module):

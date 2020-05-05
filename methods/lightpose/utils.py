@@ -73,7 +73,7 @@ def crop_face_batch(imgs, batch_size):
             hasFace[idx] = False
             continue
         flags = locations[max_area_indx(locations)]
-        cropped = cv.resize(imgs[idx, flags[0]:flags[2], flags[3]:flags[1]], (224, 224)).astype(np.float23)
+        cropped = cv.resize(imgs[idx][flags[0]:flags[2], flags[3]:flags[1]], (224, 224)).astype(np.float32)
         faces[idx] = np.transpose(cropped, (2, 0, 1))
 
     return faces, hasFace

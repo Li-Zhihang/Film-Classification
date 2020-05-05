@@ -31,7 +31,7 @@ class ToneClassifier(object):
     def __init__(self, batch_size):
         self.batch_size = batch_size
         self.model = perceptron(opt.gray_bins)
-        self.model.load_weights('./model/tone_mlp/model_21.hdf5')
+        self.model.load_weights('./models/tone_mlp/model_21.hdf5')
         print('Successfully load ToneClassifier')
 
     def get_tone_class(self, imgs):

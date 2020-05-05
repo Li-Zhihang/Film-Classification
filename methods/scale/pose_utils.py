@@ -444,6 +444,8 @@ class DataWriter(object):
         self.Q.queue.clear()
         self.stopped = False
         self.final_result = []
+        self.write_count = 0
+        self.T = time.strftime("%Y%m%d", time.localtime())
 
     def start(self):
         # start a thread to read frames from the file video stream
@@ -460,8 +462,10 @@ class DataWriter(object):
                 return
             # otherwise, ensure the queue is not empty
             if not self.Q.empty():
-                (boxes, scores, hm_data, pt1, pt2, orig_img, im_name) = self.Q.get()
+                (boxes, scores, hm_data, pt1, pt2, orig_img) = self.Q.get()
                 orig_img = np.array(orig_img, dtype=np.uint8)
+                self.write_count += 1
+                im_name = self.T + '_' + str(self.write_count) + '.jpg'
                 if boxes is None:
                     if opt.save_img or opt.save_video or opt.vis:
                         img = orig_img
@@ -504,9 +508,9 @@ class DataWriter(object):
         time.sleep(0.2)
         return not self.Q.empty()
 
-    def save(self, boxes, scores, hm_data, pt1, pt2, orig_img, im_name):
+    def save(self, boxes, scores, hm_data, pt1, pt2, orig_img):
         # save next frame in the queue
-        self.Q.put((boxes, scores, hm_data, pt1, pt2, orig_img, im_name))
+        self.Q.put((boxes, scores, hm_data, pt1, pt2, orig_img))
 
     def stop(self):
         # indicate that the thread should be stopped

@@ -18,11 +18,11 @@ def compute_hsv_histograms(imgs):
     hists = np.ndarray((datalen, bins_num))
     for k in range(datalen):
         hsv_img = cv.cvtColor(imgs[k], cv.COLOR_BGR2HSV)
-        h_hist = np.histogram(hsv_img[0], h_bins, (0, 180))[0]
+        h_hist = np.histogram(hsv_img[:, :, 0], h_bins, (0, 180))[0]
         h_hist = h_hist / np.sum(h_hist)
-        s_hist = np.histogram(hsv_img[1], s_bins, (0, 255))[0]
+        s_hist = np.histogram(hsv_img[:, :, 1], s_bins, (0, 255))[0]
         s_hist = s_hist / np.sum(s_hist)
-        v_hist = np.histogram(hsv_img[2], v_bins, (0, 255))[0]
+        v_hist = np.histogram(hsv_img[:, :, 2], v_bins, (0, 255))[0]
         v_hist = v_hist / np.sum(v_hist)
         hists[k] = np.concatenate((h_hist, s_hist, v_hist))
 

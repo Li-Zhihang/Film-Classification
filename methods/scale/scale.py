@@ -53,7 +53,7 @@ class PoseRecog(object):
             with torch.no_grad():
                 (inps, orig_img, boxes, scores, pt1, pt2) = self.det_processor.read()
                 if boxes is None or boxes.nelement() == 0:
-                    self.writer.save(None, None, None, None, None, orig_img, str(i))
+                    self.writer.save(None, None, None, None, None, orig_img)
                     continue
 
                 ckpt_time, det_time = getTime(start_time)
@@ -74,7 +74,7 @@ class PoseRecog(object):
                 ckpt_time, pose_time = getTime(ckpt_time)
                 runtime_profile['pt'].append(pose_time)
                 hm = hm.cpu()
-                self.writer.save(boxes, scores, hm, pt1, pt2, orig_img, str(i))
+                self.writer.save(boxes, scores, hm, pt1, pt2, orig_img)
 
                 ckpt_time, post_time = getTime(ckpt_time)
                 runtime_profile['pn'].append(post_time)

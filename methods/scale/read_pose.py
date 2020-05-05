@@ -68,9 +68,6 @@ def single_person(kp, height, logout=True):
     else:
         h_ratio = None
 
-    print('ankel:{:.2f}, knee:{:.2f}, hip:{:.2f}, wrist:{:.2f}, elbow:{:.2f}, shoulder:{:.2f}, ear:{:.2f}, eye:{:.2f}, nose:{:.2f}'.format(
-        ankel, knee, hip, wrist, elbow, shoulder, ear, eye, nose))
-
     if h_ratio is not None:
         if h_ratio < 0.3:
             t = 0
@@ -97,6 +94,8 @@ def single_person(kp, height, logout=True):
             t = -3  # case 2
 
     if logout:
+        print('ankel:{:.2f}, knee:{:.2f}, hip:{:.2f}, wrist:{:.2f}, elbow:{:.2f}, shoulder:{:.2f}, ear:{:.2f}, eye:{:.2f}, nose:{:.2f}'.format(
+              ankel, knee, hip, wrist, elbow, shoulder, ear, eye, nose))
         print(cn_name[t + 3])
 
     return t
@@ -127,6 +126,7 @@ def read_pose(all_res, height):
 
         if im_res == [] or im_res is None:  # no human
             scale_levs[im_idx] = -1
+            continue
 
         hu_num = len(im_res)
         hu_scales = np.ndarray((hu_num,), dtype=int)

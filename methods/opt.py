@@ -4,12 +4,14 @@ import argparse
 parser = argparse.ArgumentParser(description='Video Analysis')
 
 "----------------------------- General options -----------------------------"
-parser.add_argument('--video_path', type=str, default='./test.avi')
+parser.add_argument('--video_path', type=str, required=True)
 parser.add_argument('--batch_size', type=int, default=2)
 parser.add_argument('--win_len', type=int, default=100)
+parser.add_argument('--processing_shape', type=tuple, default=(360, 640))
 
-parser.add_argument('--sample_interval', type=int, default=5,
+parser.add_argument('--sample_interval', type=int, default=1,
                     help='number of frames to process in one second')
+parser.add_argument('--outputpath', type=str, default='./output')
 
 "----------------------------- AlphaPose options -----------------------------"
 parser.add_argument('--sp', default=True, action='store_true',
@@ -20,7 +22,6 @@ parser.add_argument('--write_json', default=False, action='store_true')
 # ########## Model options ########## #
 parser.add_argument('--nClasses', default=33, type=int,
                     help='Number of output channel')
-parser.add_argument('--outputpath', type=str, default='./res')
 
 # ########## Data options ########## #
 parser.add_argument('--inputResH', default=320, type=int,
@@ -35,6 +36,8 @@ parser.add_argument('--outputResW', default=64, type=int,
 # ########## Detection options ########## #
 parser.add_argument('--inp_dim', dest='inp_dim', type=int, default=608,
                     help='inpdim')
+parser.add_argument('--conf', dest='confidence', type=float, default=0.05,
+                    help='bounding box confidence threshold')
 parser.add_argument('--nms', dest='nms_thesh', type=float, default=0.6,
                     help='bounding box nms threshold')
 parser.add_argument('--save_img', default=False, action='store_true',
@@ -55,8 +58,11 @@ parser.add_argument('--save_video', dest='save_video',
                     help='whether to save rendered video', default=False, action='store_true')
 
 "----------------------------- Tone options -----------------------------"
-
 parser.add_argument('--gray_bins', type=int, default=128)
+
+"----------------------------- Symmetry options -----------------------------"
+parser.add_argument('--cell_size', type=tuple, default=(30, 40), help='cell size')
+parser.add_argument('--rgbbins', type=int, default=32)
 
 
 opt = parser.parse_args()

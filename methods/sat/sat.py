@@ -29,7 +29,7 @@ def compute_hsv_histograms(imgs):
     return hists
 
 
-def load_dataset(save_dir, bins_num):
+def load_dataset(save_dir):
     histograms = np.ndarray((0, bins_num))
     labels = np.ndarray((0), dtype=int)
     for sat_idx in range(len(sat_en)):

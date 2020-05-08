@@ -17,14 +17,13 @@ class LightPose(object):
     def get_lightpose(self, imgs):
         datalen = imgs.shape[0]
         # get faces
-        print('start cropping')
         faces, hasFace = crop_face_batch(imgs, self.batch_size)
 
         # run inference
         leftover = not (datalen % self.batch_size == 0)
         batch_num = datalen // self.batch_size + leftover
 
-        light_type = np.ndarray((datalen, 2))
+        light_type = np.ndarray((datalen, 2), dtype=int)
         light_score = np.ndarray((datalen, 2))
         for batch_idx in range(batch_num):
             sta = batch_idx * self.batch_size

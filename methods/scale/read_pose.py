@@ -63,8 +63,8 @@ def single_person(kp, height, logout=True):
     if upper is not None and lower is not None:
         hp = lower - upper
         h_ratio = hp / height
-        print('height of person:{:.0f}, image height:{}, height ratio:{:.2f}'.format(
-            hp, height, h_ratio))
+        if logout:
+            print('height of person:{:.0f}, image height:{}, height ratio:{:.2f}'.format(hp, height, h_ratio))
     else:
         h_ratio = None
 

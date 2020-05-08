@@ -1,4 +1,4 @@
-import cv2.cv2 as cv
+import cv2 as cv
 import numpy as np
 
 
@@ -17,19 +17,17 @@ def div(img, cell_x, cell_y, cell_size):
 
 
 def get_bins(grad_cell, ang_cell):
-    bins = np.zeros(shape=(grad_cell.shape[0], grad_cell.shape[1], 9))
-    for i in range(grad_cell.shape[0]):
-        for j in range(grad_cell.shape[1]):
-            binn = np.zeros(9)
-            grad_list = np.int8(grad_cell[i, j].flatten())
-            ang_list = ang_cell[i, j].flatten()
-            ang_list = np.int8(ang_list / 20.0)
-            ang_list[ang_list >= 9] = 0
-            for m in range(len(ang_list)):
-                binn[ang_list[m]] += int(grad_list[m])
-            bins[i][j] = binn
+    bins = np.zeros((10))
+    grad_cell = grad_cell.flatten()
+    ang_cell = ang_cell.flatten()
+    bidx = 1
+    for bidx in range(1, 10):
+        bin_top = -np.pi + 2 * bidx * np.pi / 9
+        bin_count = ang_cell < bin_top
+        bins[bidx] = np.sum(grad_cell[bin_count])
 
-    return bins
+    res = bins[1:] - bins[0:-1]
+    return res / (np.linalg.norm(res) + 0.01)
 
 
 def myHOG(img, cell_x, cell_y, cell_size):
@@ -39,11 +37,12 @@ def myHOG(img, cell_x, cell_y, cell_size):
 
     gradient_magnitude = np.sqrt(np.power(gradient_values_x, 2) + np.power(gradient_values_y, 2))
     gradient_angle = np.arctan2(gradient_values_x, gradient_values_y)
-    gradient_angle[gradient_angle > 0] *= 180 / 3.14
-    gradient_angle[gradient_angle < 0] = (gradient_angle[gradient_angle < 0] + 3.14) * 180 / 3.14
 
     grad_cell = div(gradient_magnitude, cell_x, cell_y, cell_size)
     ang_cell = div(gradient_angle, cell_x, cell_y, cell_size)
-    bins = get_bins(grad_cell, ang_cell)
+    bins = np.zeros((cell_x, cell_y, 9))
+    for r in range(cell_x):
+        for c in range(cell_y):
+            bins[r, c] = get_bins(grad_cell[r, c], ang_cell[r, c])
 
     return bins

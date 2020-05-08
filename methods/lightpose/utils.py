@@ -65,7 +65,7 @@ def crop_face_batch(imgs, batch_size):
     faces = np.ndarray((data_len, 3, 224, 224), dtype=np.float32)
 
     imgs = numpy_convert_to_list(imgs)
-    print('finish converting')
+
     batch_locs = fr.batch_face_locations(imgs, batch_size=batch_size)
 
     for idx, locations in enumerate(batch_locs):

@@ -1,4 +1,4 @@
-import cv2.cv2 as cv
+import cv2 as cv
 import numpy as np
 
 from ..opt import opt
@@ -39,8 +39,8 @@ def get_sym_score(img):
     binsl = myHOG(cv.cvtColor(img_left, cv.COLOR_BGR2GRAY), cell_x, cell_y // 2, opt.cell_size)
     binsr = myHOG(cv.cvtColor(img_right[:, ::-1], cv.COLOR_BGR2GRAY), cell_x, cell_y // 2, opt.cell_size)
 
-    cost_lr = np.sum(np.abs(histl - histr)) / cell_x / cell_y / 2
-    dist_hoglr = np.sum(np.abs(binsl - binsr)) / cell_x / cell_y / 2
+    cost_lr = np.sum(np.abs(histl - histr)) / cell_x / cell_y * 2
+    dist_hoglr = np.sum(np.abs(binsl - binsr)) / cell_x / cell_y * 2
 
     # top-bottom
     img_top = img[:height // 2]
@@ -68,7 +68,7 @@ def get_sym_score(img):
     binst = myHOG(cv.cvtColor(img_top, cv.COLOR_BGR2GRAY), cell_x // 2, cell_y, opt.cell_size)
     binsb = myHOG(cv.cvtColor(img_bottom[::-1], cv.COLOR_BGR2GRAY), cell_x // 2, cell_y, opt.cell_size)
 
-    cost_tb = np.sum(np.abs(histt - histb)) / cell_x / cell_y / 2
-    dist_hogtb = np.sum(np.abs(binst - binsb)) / cell_x / cell_y / 2
+    cost_tb = np.sum(np.abs(histt - histb)) / cell_x / cell_y * 2
+    dist_hogtb = np.sum(np.abs(binst - binsb)) / cell_x / cell_y * 2
 
     return np.array([cost_lr, dist_hoglr, cost_tb, dist_hogtb])

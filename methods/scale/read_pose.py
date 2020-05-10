@@ -2,8 +2,12 @@ import argparse
 import json
 import os
 
-import cv2.cv2 as cv
 import numpy as np
+
+try:
+    import cv2.cv2 as cv
+except Exception:
+    import cv2 as cv
 
 
 cn_name = ['case 2', 'case 1', '没这个选项', '大远景', '全景', '中景', '中近景', '近景', '特写']

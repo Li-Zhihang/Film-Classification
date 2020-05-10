@@ -1,8 +1,13 @@
 from os.path import join
 
-import cv2.cv2 as cv
 import numpy as np
 from sklearn import svm
+
+try:
+    import cv2.cv2 as cv
+except Exception:
+    import cv2 as cv
+
 
 sat_list = ['高饱和', '普通', '消色']
 sat_en = ['high_sat', 'normal', 'low_sat']

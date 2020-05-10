@@ -4,7 +4,6 @@ import time
 from queue import Queue
 from threading import Thread
 
-import cv2.cv2 as cv2
 import numpy as np
 import torch
 from torch import multiprocessing as mp
@@ -19,14 +18,19 @@ from .SPPE.sppe_utils import (cropBox, getMultiPeakPrediction, getPrediction,
 from .yolo.dartnet import Darknet
 from .yolo.yolo_utils import dynamic_write_results
 
+try:
+    import cv2.cv2 as cv
+except Exception:
+    import cv2 as cv
+
 
 def letterbox_image(img, inp_dim):
     '''resize image with unchanged aspect ratio using padding'''
     img_w, img_h = img.shape[1], img.shape[0]
     new_w = int(img_w * min(inp_dim / img_w, inp_dim / img_h))
     new_h = int(img_h * min(inp_dim / img_w, inp_dim / img_h))
-    resized_image = cv2.resize(
-        img, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
+    resized_image = cv.resize(
+        img, (new_w, new_h), interpolation=cv.INTER_CUBIC)
 
     canvas = np.full((inp_dim, inp_dim, 3), 128)
     canvas[(inp_dim - new_h) // 2:(inp_dim - new_h) // 2 + new_h,
@@ -324,7 +328,7 @@ class DetectionProcessor:
                         time.sleep(0.2)
                     self.Q.put((None, orig_img, boxes, scores, None, None))
                     continue
-                inp = im_to_torch(cv2.cvtColor(orig_img, cv2.COLOR_BGR2RGB))
+                inp = im_to_torch(cv.cvtColor(orig_img, cv.COLOR_BGR2RGB))
                 inps, pt1, pt2 = crop_from_dets(inp, boxes, inps, pt1, pt2)
 
                 while self.Q.full():
@@ -389,7 +393,7 @@ def vis_frame(frame, im_res, format='coco'):
 
     img = frame
     height, width = img.shape[:2]
-    img = cv2.resize(img, (int(width / 2), int(height / 2)))
+    img = cv.resize(img, (int(width / 2), int(height / 2)))
     for human in im_res['result']:
         part_line = {}
         kp_preds = human['keypoints']
@@ -403,10 +407,10 @@ def vis_frame(frame, im_res, format='coco'):
             cor_x, cor_y = int(kp_preds[n, 0]), int(kp_preds[n, 1])
             part_line[n] = (int(cor_x / 2), int(cor_y / 2))
             bg = img.copy()
-            cv2.circle(bg, (int(cor_x / 2), int(cor_y / 2)), 2, p_color[n], -1)
+            cv.circle(bg, (int(cor_x / 2), int(cor_y / 2)), 2, p_color[n], -1)
             # Now create a mask of logo and create its inverse mask also
             transparency = max(0, min(1, kp_scores[n]))
-            img = cv2.addWeighted(bg, transparency, img, 1 - transparency, 0)
+            img = cv.addWeighted(bg, transparency, img, 1 - transparency, 0)
         # Draw limbs
         for i, (start_p, end_p) in enumerate(l_pair):
             if start_p in part_line and end_p in part_line:
@@ -421,13 +425,13 @@ def vis_frame(frame, im_res, format='coco'):
                 length = ((Y[0] - Y[1]) ** 2 + (X[0] - X[1]) ** 2) ** 0.5
                 angle = math.degrees(math.atan2(Y[0] - Y[1], X[0] - X[1]))
                 stickwidth = (kp_scores[start_p] + kp_scores[end_p]) + 1
-                polygon = cv2.ellipse2Poly((int(mX), int(mY)), (int(
+                polygon = cv.ellipse2Poly((int(mX), int(mY)), (int(
                     length / 2), stickwidth), int(angle), 0, 360, 1)
-                cv2.fillConvexPoly(bg, polygon, line_color[i])
+                cv.fillConvexPoly(bg, polygon, line_color[i])
                 # cv2.line(bg, start_xy, end_xy, line_color[i], (2 * (kp_scores[start_p] + kp_scores[end_p])) + 1)
-                transparency = max(0, min(1, 0.5*(kp_scores[start_p] + kp_scores[end_p])))
-                img = cv2.addWeighted(bg, transparency, img, 1 - transparency, 0)
-    img = cv2.resize(img, (width, height), interpolation=cv2.INTER_CUBIC)
+                transparency = max(0, min(1, 0.5 * (kp_scores[start_p] + kp_scores[end_p])))
+                img = cv.addWeighted(bg, transparency, img, 1 - transparency, 0)
+    img = cv.resize(img, (width, height), interpolation=cv.INTER_CUBIC)
     return img
 
 
@@ -470,10 +474,10 @@ class DataWriter(object):
                     if opt.save_img or opt.save_video or opt.vis:
                         img = orig_img
                         if opt.vis:
-                            cv2.imshow("AlphaPose Demo", img)
-                            cv2.waitKey(30)
+                            cv.imshow("AlphaPose Demo", img)
+                            cv.waitKey(30)
                         if opt.save_img:
-                            cv2.imwrite(os.path.join(opt.outputpath, 'vis', im_name), img)
+                            cv.imwrite(os.path.join(opt.outputpath, 'vis', im_name), img)
                         if opt.save_video:
                             self.stream.write(img)
                 else:
@@ -494,10 +498,10 @@ class DataWriter(object):
                     if opt.save_img or opt.save_video or opt.vis:
                         img = vis_frame(orig_img, result)
                         if opt.vis:
-                            cv2.imshow("AlphaPose Demo", img)
-                            cv2.waitKey(30)
+                            cv.imshow("AlphaPose Demo", img)
+                            cv.waitKey(30)
                         if opt.save_img:
-                            cv2.imwrite(os.path.join(opt.outputpath, 'vis', im_name), img)
+                            cv.imwrite(os.path.join(opt.outputpath, 'vis', im_name), img)
                         if opt.save_video:
                             self.stream.write(img)
             else:

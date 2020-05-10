@@ -1,7 +1,10 @@
-import cv2.cv2 as cv
+try:
+    import cv2.cv2 as cv
+except Exception:
+    import cv2 as cv
+
 import face_recognition as fr
 import numpy as np
-import tensorflow as tf
 from keras import layers, models
 
 

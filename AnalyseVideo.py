@@ -1,6 +1,5 @@
 import os
 
-import cv2.cv2 as cv
 import numpy as np
 import tensorflow as tf
 
@@ -11,6 +10,12 @@ from methods.sat.sat import Sat_SVM
 from methods.scale.scale import PoseRecog
 from methods.symmetry.sym import get_sym_score
 from methods.tone.tone import ToneClassifier
+
+try:
+    import cv2.cv2 as cv
+except Exception:
+    import cv2 as cv
+
 
 args = opt
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -61,7 +66,10 @@ def read_block(cap, win_len, sample_interval=1):
         _, img = cap.read()
         if img is None:
             sample_index = [x for x in range(0, k, sample_interval)]
-            return imgs[sample_index], True
+            if k == 0:
+                return None, True
+            else:
+                return imgs[sample_index], True
         imgs[k] = cv.resize(img, (args.processing_shape[1], args.processing_shape[0]))
 
     sample_index = [x for x in range(0, win_len, sample_interval)]
@@ -73,43 +81,47 @@ def process(analyser, video_path):
     if not cap.isOpened():
         print('Cannot open source file: ' + video_path)
         return
-    fps = cap.get(cv.CAP_PROP_FPS)
+    fps = float(cap.get(cv.CAP_PROP_FPS))
+    framenum = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+    duration = int(framenum / fps)
 
-    print('*****************************************************')
-    print('Video Name: {:s}\nFPS: {:.2f}\nSample Interval: {:d}\nSample Rate: {:.2f}\nWindow Length: {:d}\nBatch Size: {:d}'.format(
-        args.video_path, fps, args.sample_interval, fps / args.sample_interval, args.win_len, args.batch_size))
-    print('*****************************************************')
+    print('**********************************')
+    print('Video Name: {:s}\nVideo Length: {:d}\'{:02d}"\nFPS: {:.2f}\nSample Interval: {:d}\nSample Rate: {:.2f}\nWindow Length: {:d}\nBatch Size: {:d}'.format(
+        video_path, duration // 60, duration % 60, fps, args.sample_interval, fps / args.sample_interval, args.win_len, args.batch_size))
+    print('**********************************')
 
     dirname = os.path.dirname(video_path)
     basename = os.path.basename(video_path).split('.')[0]
-    fcolor = open(os.path.join(dirname, basename + '.color'), 'w')
+    foutput = open(os.path.join(dirname, basename + '.output'), 'w')
 
     print('Start reading video...')
     eof_flag = False
     while not eof_flag:
         imgs, eof_flag = read_block(cap, args.win_len, args.sample_interval)
+        if imgs is None:
+            break
         color = analyser.get_colors(imgs)
-        print('got color')
-        analyser.get_light_pose(imgs)
-        print('got light pose')
-        analyser.get_shot_scale(imgs)
-        print('got shot scale')
+        lp = analyser.get_light_pose(imgs)
+        scale = analyser.get_shot_scale(imgs)
         tone = analyser.get_tone(imgs)
-        print('got tone type')
         sat = analyser.get_saturation(imgs)
-        print('got sat type')
         sym = analyser.get_symmetry(imgs)
-        print('got sym score')
 
         for k in range(imgs.shape[0]):
             for cluster in range(5):
-                fcolor.write('{:3d} {:3d} {:3d}\n'.format(color[k, cluster, 0], color[k, cluster, 1], color[k, cluster, 2]))
-            fcolor.write('{:d}\n'.format(tone[k]))
-            fcolor.write('{:d}\n'.format(sat[k]))
-            fcolor.write('{:.2f} {:.2f} {:.2f} {:.2f}\n'.format(sym[k, 0], sym[k, 1], sym[k, 2], sym[k, 3]))
+                foutput.write('{:3d} {:3d} {:3d}\n'.format(
+                    color[k, cluster, 0], color[k, cluster, 1], color[k, cluster, 2]))
+            foutput.write('{:d}\n'.format(tone[k]))
+            foutput.write('{:d}\n'.format(sat[k]))
+            foutput.write('{:.2f} {:.2f} {:.2f} {:.2f}\n'.format(
+                sym[k, 0], sym[k, 1], sym[k, 2], sym[k, 3]))
+            foutput.write('{:d}\n'.format(scale[k]))
+            foutput.write('{:d}\n'.format(lp[2][k]))
+            foutput.write('{:d} {:d}\n'.format(lp[0][k, 0], lp[0][k, 1]))
+            foutput.write('{:.2f} {:.2f}\n'.format(lp[1][k, 0], lp[1][k, 1]))
 
     cap.release()
-    fcolor.close()
+    foutput.close()
 
 
 def main():

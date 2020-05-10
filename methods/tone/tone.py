@@ -1,4 +1,8 @@
-import cv2.cv2 as cv
+try:
+    import cv2.cv2 as cv
+except Exception:
+    import cv2 as cv
+
 import keras
 import numpy as np
 

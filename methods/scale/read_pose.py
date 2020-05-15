@@ -2,7 +2,10 @@ import argparse
 import json
 import os
 
+import keras
 import numpy as np
+
+from ..opt import opt
 
 try:
     import cv2.cv2 as cv
@@ -10,7 +13,7 @@ except Exception:
     import cv2 as cv
 
 
-cn_name = ['case 2', 'case 1', '没这个选项', '大远景', '全景', '中景', '中近景', '近景', '特写']
+cn_name = ['case 2', 'case 1', '没这个选项', '大远景', '远景', '全景', '中景', '中近景', '近景', '特写']
 
 
 def single_person(kp, height, logout=True):
@@ -105,6 +108,47 @@ def single_person(kp, height, logout=True):
     return t
 
 
+def judge_closeshot(kp):
+    threshold1 = 0.25
+
+    Nose = kp[0:3]
+    LEye = kp[3:6]
+    REye = kp[6:9]
+    LEar = kp[9:12]
+    REar = kp[12:15]
+    LShoulder = kp[15:18]
+    RShoulder = kp[18:21]
+    LElbow = kp[21:24]
+    RElbow = kp[24:27]
+    LWrist = kp[27:30]
+    RWrist = kp[30:33]
+    LHip = kp[33:36]
+    RHip = kp[36:39]
+    LKnee = kp[39:42]
+    RKnee = kp[42:45]
+    LAnkle = kp[45:48]
+    RAnkle = kp[48:51]
+
+    # max score of body parts
+    ankel = max(RAnkle[2], LAnkle[2])
+    knee = max(RKnee[2], LKnee[2])
+    hip = max(RHip[2], LHip[2])
+    wrist = max(RWrist[2], LWrist[2])
+    elbow = max(RElbow[2], LElbow[2])
+    shoulder = max(RShoulder[2], LShoulder[2])
+    ear = max(REar[2], LEar[2])
+    eye = max(REye[2], LEye[2])
+    nose = Nose[2]
+
+    if max(ankel, knee, hip, wrist, elbow, shoulder) < threshold1:
+        if min(ear, eye, nose) > threshold1:
+            return 1
+        else:
+            return -1
+    else:
+        return 0
+
+
 def read_json(path, img_dir):
     with open(path, 'r') as f:
         res = json.load(f)
@@ -151,6 +195,78 @@ def read_pose(all_res, height):
 
         scale_levs[im_idx] = np.max(hu_scales)
     return scale_levs
+
+
+def perceptron():
+    net = keras.models.Sequential([
+        keras.layers.Dense(200, input_shape=(52,), activation='relu'),
+        keras.layers.Dense(6, activation='softmax')
+    ])
+    return net
+
+
+class PoseReader(object):
+    def __init__(self):
+        self.model = perceptron()
+        self.model.load_weights('./models/scale_mlp/model_18.hdf5')
+
+    def read_pose_mlp(self, final_result, height):
+        datalen = len(final_result)
+        pose_raw_list = np.ndarray((0, 52))
+
+        scale_type = np.ndarray((datalen,), dtype=int)
+        wait_decide = np.ones((datalen,), dtype=bool)
+        pose_raw_list = np.zeros((datalen, 52))
+        for im_idx in range(datalen):
+            im_res = final_result[im_idx]['result']
+            if im_res == [] or im_res is None:  # unknown error
+                scale_type[im_idx] = -1
+                wait_decide[im_idx] = False
+                continue
+
+            hu_num = len(im_res)
+            hum_scores = np.zeros((hu_num,))
+            for hu_idx in range(hu_num):
+                hum_scores[hu_idx] = float(im_res[hu_idx]['proposal_score'])
+            hu_max = np.max(hum_scores)
+            if hu_max < 1.5:  # no human
+                scale_type[im_idx] = -2
+                wait_decide[im_idx] = False
+                continue
+
+            hu_max_idx = np.argmax(hum_scores)
+            kp_preds = im_res[hu_max_idx]['keypoints']
+            kp_scores = im_res[hu_max_idx]['kp_score']
+            keypoints = []
+            for n in range(kp_scores.shape[0]):
+                keypoints.append(float(kp_preds[n, 0]))
+                keypoints.append(float(kp_preds[n, 1]))
+                keypoints.append(float(kp_scores[n]))
+            keypoints.append(height)
+            if_cs = judge_closeshot(keypoints)
+            if if_cs == 1:  # is close shot
+                scale_type[im_idx] = 5
+                wait_decide[im_idx] = False
+                continue
+            elif if_cs == -1:  # unkown error, ought to be -2 but still processed
+                scale_type[im_idx] = -3
+                wait_decide[im_idx] = False
+                continue
+
+            pose_raw_list[im_idx] = np.array(keypoints)
+
+        leftover = not (datalen % opt.batch_size == 0)
+        batch_num = datalen // opt.batch_size + leftover
+
+        logits = np.ndarray((datalen,), dtype=int)
+        for batch_index in range(batch_num):
+            start = batch_index * opt.batch_size
+            stop = min((batch_index + 1) * opt.batch_size, datalen)
+
+            pred = self.model.predict(pose_raw_list[start:stop])
+            logits[start:stop] = np.argmax(pred, axis=-1)
+        scale_type[wait_decide] = logits[wait_decide]
+        return scale_type
 
 
 def main(args):

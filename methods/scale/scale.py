@@ -4,7 +4,7 @@ from ..opt import opt
 from .pose_utils import (DataWriter, DetectionLoader, DetectionProcessor,
                          ImageLoader, InferenNet_fast, getTime)
 from .pPose_nms import write_json
-from .read_pose import read_pose
+from .read_pose import PoseReader
 
 args = opt
 if not args.sp:
@@ -21,11 +21,12 @@ class PoseRecog(object):
         self.pose_model.cuda()
         self.pose_model.eval()
         self.writer = DataWriter()
+        self.pose_reader = PoseReader()
 
     def _reset(self):
         self.data_loader.reset()
 
-    def get_pose(self, imgs):
+    def get_pose(self, imgs, raw=False):
         datalen = imgs.shape[0]
         height = imgs.shape[1]
         width = imgs.shape[2]
@@ -85,4 +86,6 @@ class PoseRecog(object):
         final_result = self.writer.results()
         if args.write_json:
             write_json(final_result, args.outputpath)
-        return read_pose(final_result, height)
+        if raw:
+            return final_result, height
+        return self.pose_reader.read_pose_mlp(final_result, height)

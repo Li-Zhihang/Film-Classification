@@ -4,7 +4,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Video Analysis')
 
 "----------------------------- General options -----------------------------"
-parser.add_argument('--video_path', type=str, required=True)
+parser.add_argument('--video_path', type=str, default=None)
 parser.add_argument('--batch_size', type=int, default=2)
 parser.add_argument('--win_len', type=int, default=100)
 parser.add_argument('--processing_shape', type=tuple, default=(360, 640))

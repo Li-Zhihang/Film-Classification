@@ -108,47 +108,6 @@ def single_person(kp, height, logout=True):
     return t
 
 
-def judge_closeshot(kp):
-    threshold1 = 0.25
-
-    Nose = kp[0:3]
-    LEye = kp[3:6]
-    REye = kp[6:9]
-    LEar = kp[9:12]
-    REar = kp[12:15]
-    LShoulder = kp[15:18]
-    RShoulder = kp[18:21]
-    LElbow = kp[21:24]
-    RElbow = kp[24:27]
-    LWrist = kp[27:30]
-    RWrist = kp[30:33]
-    LHip = kp[33:36]
-    RHip = kp[36:39]
-    LKnee = kp[39:42]
-    RKnee = kp[42:45]
-    LAnkle = kp[45:48]
-    RAnkle = kp[48:51]
-
-    # max score of body parts
-    ankel = max(RAnkle[2], LAnkle[2])
-    knee = max(RKnee[2], LKnee[2])
-    hip = max(RHip[2], LHip[2])
-    wrist = max(RWrist[2], LWrist[2])
-    elbow = max(RElbow[2], LElbow[2])
-    shoulder = max(RShoulder[2], LShoulder[2])
-    ear = max(REar[2], LEar[2])
-    eye = max(REye[2], LEye[2])
-    nose = Nose[2]
-
-    if max(ankel, knee, hip, wrist, elbow, shoulder) < threshold1:
-        if min(ear, eye, nose) > threshold1:
-            return 1
-        else:
-            return -1
-    else:
-        return 0
-
-
 def read_json(path, img_dir):
     with open(path, 'r') as f:
         res = json.load(f)
@@ -208,7 +167,7 @@ def perceptron():
 class PoseReader(object):
     def __init__(self):
         self.model = perceptron()
-        self.model.load_weights('./models/scale_mlp/model_18.hdf5')
+        self.model.load_weights('./models/scale_mlp/model_09.hdf5')
 
     def read_pose_mlp(self, final_result, height):
         datalen = len(final_result)
@@ -243,15 +202,6 @@ class PoseReader(object):
                 keypoints.append(float(kp_preds[n, 1]))
                 keypoints.append(float(kp_scores[n]))
             keypoints.append(height)
-            if_cs = judge_closeshot(keypoints)
-            if if_cs == 1:  # is close shot
-                scale_type[im_idx] = 5
-                wait_decide[im_idx] = False
-                continue
-            elif if_cs == -1:  # unkown error, ought to be -2 but still processed
-                scale_type[im_idx] = -3
-                wait_decide[im_idx] = False
-                continue
 
             pose_raw_list[im_idx] = np.array(keypoints)
 

@@ -19,11 +19,6 @@ def perceptron():
     return net
 
 
-def top2_accuracy_onehot(y_true, y_pred):
-    '''y_true must be onehot'''
-    return keras.metrics.top_k_categorical_accuracy(y_true, y_pred, k=2)
-
-
 def get_prediction(sidx, model):
     x = np.load(os.path.join(args.data_dir, 'pose_' + scale_name_cn[sidx] + '.npy'))
     y = sidx * np.ones((x.shape[0]), dtype=int)
@@ -54,10 +49,10 @@ def get_prediction(sidx, model):
 
 def main(args):
     model = perceptron()
-    model.load_weights('./models/scale_mlp/model_18.hdf5')
+    model.load_weights('./models/scale_mlp/model_09.hdf5')
     for sidx in range(len(scale_name_cn)):
         get_prediction(sidx, model)
-    # get_prediction(4, model)
+    # get_prediction(2, model)
 
 
 if __name__ == '__main__':

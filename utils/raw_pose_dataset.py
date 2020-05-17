@@ -30,7 +30,7 @@ def main(args):
             for hu_idx in range(hu_num):
                 hum_scores[hu_idx] = float(im_res[hu_idx]['proposal_score'])
             hu_max = np.max(hum_scores)
-            if hu_max < 1.5:
+            if hu_max < 0.5:
                 continue
 
             hu_max_idx = np.argmax(hum_scores)

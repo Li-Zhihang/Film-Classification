@@ -1,14 +1,18 @@
 import argparse
+import math
 import os
 
 import keras
 import keras.backend as K
 import numpy as np
-import math
+import tensorflow as tf
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-tone_list = ['全色调', '白灰黑低调', '灰黑低调', '白黑低调', '白灰黑高调', '白灰高调', '白黑高调', '低反差', '高反差']
-tone_en = ['full_color', 'wgb_low', 'gb_low', 'wb_low', 'wgb_high', 'wg_high', 'wb_high', 'low_contrast']  # , 'high_contrast']
+tone_list = ['全色调', '白灰黑低调', '灰黑低调', '白黑低调', '白灰黑高调', '白灰高调', '白黑高调', '低反差']
+tone_en = ['full_color', 'wgb_low', 'gb_low', 'wb_low', 'wgb_high', 'wg_high', 'wb_high', 'low_contrast']
 
 
 class Dataset(keras.utils.Sequence):
@@ -40,6 +44,9 @@ class Dataset(keras.utils.Sequence):
         for idx in range(len(tone_en)):
             path = os.path.join(data_dir, tone_en[idx] + '.npy')
             hists = np.load(path)
+            if idx == 3 or idx == 6:  # wblow and wbhigh are small in number
+                x = np.concatenate((x, hists), axis=0)
+                y = np.concatenate((y, idx * np.ones(len(hists))))
             x = np.concatenate((x, hists), axis=0)
             y = np.concatenate((y, idx * np.ones(len(hists))))
 
@@ -58,7 +65,7 @@ class Dataset(keras.utils.Sequence):
 def step_decay(epoch):
     inital_rate = 0.05
     drop = 0.1
-    interval = 10
+    interval = 15
     lr = inital_rate * math.pow(drop, ((epoch + 1) // interval))
     return lr
 
@@ -92,7 +99,7 @@ def train(args):
 
     ckpt_name = 'model_{epoch:02d}.hdf5'
     ckpt_helper = keras.callbacks.ModelCheckpoint(os.path.join(
-        args.ckpt_path, ckpt_name), monitor='val_loss', verbose=1, save_weights_only=True, mode='auto', period=3)
+        args.ckpt_path, ckpt_name), monitor='val_loss', verbose=1, save_weights_only=True, mode='auto', period=2)
     lrscheduler = keras.callbacks.LearningRateScheduler(step_decay, verbose=0)
 
     model.fit_generator(
@@ -104,31 +111,14 @@ def train(args):
     )
 
 
-def test(args):
-    model = perceptron(args.input_dim)
-    model.load_weights(args.ckpt_path)
-
-    for tone_idx in range(len(tone_en)):
-        tone = tone_en[tone_idx]
-        test_gen = Dataset(os.path.join(args.test_dir, tone + '.npy'), args.input_dim, args.infer_batch_size, False, True, tone_idx)
-        y_label = test_gen.y
-        y_pred = model.predict(test_gen.x)
-        y_log = K.argmax(y_pred).numpy()
-        acc = np.mean(np.equal(y_label, y_log))
-        tp2 = top2_accuracy(y_label, y_pred).numpy()
-        acc_top2 = np.mean(tp2)
-        print(tone_list[tone_idx] + ': {:3f} {:.3f}'.format(acc, acc_top2))
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--test', type=bool, default=True)
     # path
     parser.add_argument('--data_dir', type=str, default='./gray')
-    parser.add_argument('--ckpt_path', type=str, default='./records/model_21.hdf5')
+    parser.add_argument('--ckpt_path', type=str, default='./records')
     # training
     parser.add_argument('--input_dim', type=int, default=128)
-    parser.add_argument('--max_epoch', type=int, default=30)
+    parser.add_argument('--max_epoch', type=int, default=45)
     parser.add_argument('--batch_size', type=int, default=6)
     parser.add_argument('--infer_batch_size', type=int, default=2)
 
@@ -143,10 +133,5 @@ if __name__ == '__main__':
     if not os.path.exists(args.train_dir) or not os.path.exists(args.test_dir):
         raise FileNotFoundError('Train dir or test dir does not exist.')
 
-    if args.test:
-        if not os.path.isfile(args.ckpt_path):
-            raise FileExistsError(args.ckpt_path + ' is not a file')
-        test(args)
-    else:
-        os.makedirs(args.ckpt_path, exist_ok=True)
-        train(args)
+    os.makedirs(args.ckpt_path, exist_ok=True)
+    train(args)

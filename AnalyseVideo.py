@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import tensorflow as tf
+from tqdm import trange
 
 from methods.color.color import get_dominent_colors
 from methods.lightpose.pose import LightPose
@@ -60,20 +61,41 @@ class Analyser(object):
         return sym
 
 
+def crop_to_16vs9(img):
+    height = img.shape[0]
+    width = img.shape[1]
+    suppose_width = height * 16 // 9
+    suppose_height = width * 9 // 16
+
+    if width > suppose_width + 1:  # width is too long
+        w_start = (width - suppose_width) // 2
+        res = img[:, w_start:-w_start, :]
+    elif width < suppose_width - 1:  # height is too long
+        h_start = (height - suppose_height) // 2
+        res = img[h_start:-h_start, :, :]
+    else:
+        res = img
+
+    return res
+
+
 def read_block(cap, win_len, sample_interval=1):
     imgs = np.ndarray((win_len, args.processing_shape[0], args.processing_shape[1], 3), dtype=np.uint8)
+    imgs_hd = np.ndarray((win_len, args.high_resolution_shape[0], args.high_resolution_shape[1], 3), dtype=np.uint8)
     for k in range(win_len):
         _, img = cap.read()
         if img is None:
             sample_index = [x for x in range(0, k, sample_interval)]
             if k == 0:
-                return None, True
+                return None, None, True
             else:
-                return imgs[sample_index], True
+                return imgs[sample_index], imgs_hd[sample_index], True
         imgs[k] = cv.resize(img, (args.processing_shape[1], args.processing_shape[0]))
+        img = crop_to_16vs9(img)
+        imgs_hd[k] = cv.resize(img, (args.high_resolution_shape[1], args.high_resolution_shape[0]))
 
     sample_index = [x for x in range(0, win_len, sample_interval)]
-    return imgs[sample_index], False
+    return imgs[sample_index], imgs_hd[sample_index], False
 
 
 def process(analyser, video_path):
@@ -81,31 +103,22 @@ def process(analyser, video_path):
     if not cap.isOpened():
         print('Cannot open source file: ' + video_path)
         return
-    fps = float(cap.get(cv.CAP_PROP_FPS))
-    framenum = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
-    duration = int(framenum / fps)
-
-    print('**********************************')
-    print('Video Name: {:s}\nVideo Length: {:d}\'{:02d}"\nFPS: {:.2f}\nSample Interval: {:d}\nSample Rate: {:.2f}\nWindow Length: {:d}\nBatch Size: {:d}'.format(
-        video_path, duration // 60, duration % 60, fps, args.sample_interval, fps / args.sample_interval, args.win_len, args.batch_size))
-    print('**********************************')
 
     dirname = os.path.dirname(video_path)
     basename = os.path.basename(video_path).split('.')[0]
     foutput = open(os.path.join(dirname, basename + '.output'), 'w')
 
-    print('Start reading video...')
     eof_flag = False
     while not eof_flag:
-        imgs, eof_flag = read_block(cap, args.win_len, args.sample_interval)
+        imgs, imgs_hd, eof_flag = read_block(cap, args.win_len, args.sample_interval)
         if imgs is None:
             break
         color = analyser.get_colors(imgs)
-        lp = analyser.get_light_pose(imgs)
-        scale = analyser.get_shot_scale(imgs)
+        lp = analyser.get_light_pose(imgs_hd)
+        scale = analyser.get_shot_scale(imgs_hd)
         tone = analyser.get_tone(imgs)
         sat = analyser.get_saturation(imgs)
-        sym = analyser.get_symmetry(imgs)
+        # sym = analyser.get_symmetry(imgs)
 
         for k in range(imgs.shape[0]):
             for cluster in range(5):
@@ -113,8 +126,8 @@ def process(analyser, video_path):
                     color[k, cluster, 0], color[k, cluster, 1], color[k, cluster, 2]))
             foutput.write('{:d}\n'.format(tone[k]))
             foutput.write('{:d}\n'.format(sat[k]))
-            foutput.write('{:.2f} {:.2f} {:.2f} {:.2f}\n'.format(
-                sym[k, 0], sym[k, 1], sym[k, 2], sym[k, 3]))
+            # foutput.write('{:.2f} {:.2f} {:.2f} {:.2f}\n'.format(
+            #     sym[k, 0], sym[k, 1], sym[k, 2], sym[k, 3]))
             foutput.write('{:d}\n'.format(scale[k]))
             foutput.write('{:d}\n'.format(lp[2][k]))
             foutput.write('{:d} {:d}\n'.format(lp[0][k, 0], lp[0][k, 1]))
@@ -130,8 +143,13 @@ def main():
     if os.path.isfile(args.video_path):
         process(analyser, args.video_path)
     else:
-        for file in os.listdir(args.video_path):
-            process(analyser, os.path.join(args.video_path, file))
+        flist = os.listdir(args.video_path)
+        for fidx in trange(len(flist)):
+            try:
+                process(analyser, os.path.join(args.video_path, flist[fidx]))
+            except Exception as e:
+                print('Error when processing', flist[fidx], 'due to the following reason(s)')
+                print(e)
     print('Done.')
 
 

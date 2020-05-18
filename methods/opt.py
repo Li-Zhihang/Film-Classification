@@ -8,8 +8,9 @@ parser.add_argument('--video_path', type=str, default=None)
 parser.add_argument('--batch_size', type=int, default=2)
 parser.add_argument('--win_len', type=int, default=100)
 parser.add_argument('--processing_shape', type=tuple, default=(360, 640))
+parser.add_argument('--high_resolution_shape', type=tuple, default=(900, 1600))
 
-parser.add_argument('--sample_interval', type=int, default=1,
+parser.add_argument('--sample_interval', type=int, default=6,
                     help='number of frames to process in one second')
 parser.add_argument('--outputpath', type=str, default='./output')
 

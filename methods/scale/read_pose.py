@@ -178,7 +178,7 @@ class PoseReader(object):
         pose_raw_list = np.zeros((datalen, 52))
         for im_idx in range(datalen):
             im_res = final_result[im_idx]['result']
-            if im_res == [] or im_res is None:  # unknown error
+            if im_res == [] or im_res is None:  # no human 1
                 scale_type[im_idx] = -1
                 wait_decide[im_idx] = False
                 continue
@@ -187,8 +187,8 @@ class PoseReader(object):
             hum_scores = np.zeros((hu_num,))
             for hu_idx in range(hu_num):
                 hum_scores[hu_idx] = float(im_res[hu_idx]['proposal_score'])
-            hu_max = np.max(hum_scores)
-            if hu_max < 1.5:  # no human
+
+            if np.max(hum_scores) < 0.5:  # no human
                 scale_type[im_idx] = -2
                 wait_decide[im_idx] = False
                 continue
@@ -205,16 +205,9 @@ class PoseReader(object):
 
             pose_raw_list[im_idx] = np.array(keypoints)
 
-        leftover = not (datalen % opt.batch_size == 0)
-        batch_num = datalen // opt.batch_size + leftover
-
         logits = np.ndarray((datalen,), dtype=int)
-        for batch_index in range(batch_num):
-            start = batch_index * opt.batch_size
-            stop = min((batch_index + 1) * opt.batch_size, datalen)
-
-            pred = self.model.predict(pose_raw_list[start:stop])
-            logits[start:stop] = np.argmax(pred, axis=-1)
+        pred = self.model.predict(pose_raw_list, batch_size=opt.batch_size)
+        logits = np.argmax(pred, axis=-1)
         scale_type[wait_decide] = logits[wait_decide]
         return scale_type
 

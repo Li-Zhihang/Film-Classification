@@ -471,6 +471,11 @@ class DataWriter(object):
                 self.write_count += 1
                 im_name = self.T + '_' + str(self.write_count) + '.jpg'
                 if boxes is None:
+                    result = {
+                        'imgname': im_name,
+                        'result': []
+                    }
+                    self.final_result.append(result)
                     if opt.save_img or opt.save_video or opt.vis:
                         img = orig_img
                         if opt.vis:

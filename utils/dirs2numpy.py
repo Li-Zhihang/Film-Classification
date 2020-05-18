@@ -25,7 +25,6 @@ def crop_to_16vs9(imgs):
         res = imgs[:, h_start:-h_start, :, :]
     else:
         res = imgs
-    
 
     return res.squeeze()
 

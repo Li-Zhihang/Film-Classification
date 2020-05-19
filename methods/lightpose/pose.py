@@ -19,19 +19,16 @@ class LightPose(object):
         # get faces
         faces, hasFace = crop_face_batch(imgs, self.batch_size)
 
-        # run inference
-        leftover = not (datalen % self.batch_size == 0)
-        batch_num = datalen // self.batch_size + leftover
+        preds = self.model.predict(faces, batch_size=self.batch_size)
 
-        light_type = np.ndarray((datalen, 2), dtype=int)
-        light_score = np.ndarray((datalen, 2))
-        for batch_idx in range(batch_num):
-            sta = batch_idx * self.batch_size
-            stp = min(datalen, (batch_idx + 1) * self.batch_size)
-            face_inputs = faces[sta: stp]
-            preds = self.model.predict(face_inputs)
-            top2 = tf.nn.top_k(preds, 2)
-            light_score[sta: stp] = top2[0].numpy()
-            light_type[sta: stp] = top2[1].numpy()
+        top2 = tf.nn.top_k(preds, 2)
+        light_score = top2[0].numpy()
+        light_type = top2[1].numpy()
+        # light_score1 = np.max(preds, axis=-1)
+        # light_type1 = np.argmax(preds, axis=-1)
+
+        # for k in range(datalen):
+        #     if not hasFace[k]:
+        #         light_type1[k] = -1
 
         return light_type, light_score, hasFace

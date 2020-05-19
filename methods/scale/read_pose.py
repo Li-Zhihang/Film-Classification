@@ -174,6 +174,7 @@ class PoseReader(object):
         pose_raw_list = np.ndarray((0, 52))
 
         scale_type = np.ndarray((datalen,), dtype=int)
+        human_num = np.zeros((datalen,), dtype=int)
         wait_decide = np.ones((datalen,), dtype=bool)
         pose_raw_list = np.zeros((datalen, 52))
         for im_idx in range(datalen):
@@ -184,6 +185,11 @@ class PoseReader(object):
                 continue
 
             hu_num = len(im_res)
+            if hu_num == 0:
+                scale_type[im_idx] = -1
+                wait_decide[im_idx] = False
+                continue
+
             hum_scores = np.zeros((hu_num,))
             for hu_idx in range(hu_num):
                 hum_scores[hu_idx] = float(im_res[hu_idx]['proposal_score'])
@@ -192,6 +198,8 @@ class PoseReader(object):
                 scale_type[im_idx] = -2
                 wait_decide[im_idx] = False
                 continue
+
+            human_num[im_idx] = np.sum(hum_scores >= 0.5)
 
             hu_max_idx = np.argmax(hum_scores)
             kp_preds = im_res[hu_max_idx]['keypoints']
@@ -209,7 +217,7 @@ class PoseReader(object):
         pred = self.model.predict(pose_raw_list, batch_size=opt.batch_size)
         logits = np.argmax(pred, axis=-1)
         scale_type[wait_decide] = logits[wait_decide]
-        return scale_type
+        return scale_type, human_num
 
 
 def main(args):

@@ -1,11 +1,11 @@
 clear
 clc
 
-dname = '.\color_info';
+dname = '.\color_info\moonrise\';
 flist = dir(dname);
 cinfo = [];
 for k = 3: length(flist)
-    fname = [dname, '\', flist(k).name];
+    fname = [dname, flist(k).name];
     load(fname)
     cinfo = [cinfo; info];
 end

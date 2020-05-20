@@ -1,20 +1,21 @@
-function process_color(direct, fname, outdir)
+function get_shot_color(direct, fname, outdir)
 foutput = fopen([direct, fname]);
-% tone = [];
-% sat = [];
+
 color_lighter = [];
 color_darkest = [];
 frame_num = 0;
 while ~feof(foutput)
     c = fscanf(foutput, '%d %d %d\n', [3, 5])';
-
+    if isempty(c)
+        break
+    end
     t = str2double(fgetl(foutput));
     s = str2double(fgetl(foutput));
 %     sy = fscanf(foutput, '%f %f %f %f\n', [4, 1])';
-%     sc = str2double(fgetl(foutput));
-%     hf = str2double(fgetl(foutput));
-%     pi = fscanf(foutput, '%d %d\n', [2, 1])';
-%     ps = fscanf(foutput, '%f %f\n', [2, 1])';
+    sc = str2double(fgetl(foutput));
+    hf = str2double(fgetl(foutput));
+    pi = fscanf(foutput, '%d %d\n', [2, 1])';
+    ps = fscanf(foutput, '%f %f\n', [2, 1])';
 
     c_sum = sum(c, 2);
     [b, index] = sort(c_sum');
@@ -37,6 +38,7 @@ while ~feof(foutput)
 end
 fclose(foutput);
 %% draw color hist
+if ~isempty(color_lighter)  % file is empty
 
 color_lighter = reshape(color_lighter, size(color_lighter, 1), 1, size(color_lighter, 2));
 hsv_lighter = rgb2hsv(color_lighter);
@@ -131,7 +133,9 @@ if ~isempty(pks_val)
     end
     save([outdir, fname, '.mat'], 'info')
 end
-
+else
+    disp(fname)
+end
 end
 
 function dist = mydist(coor, points)

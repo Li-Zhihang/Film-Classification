@@ -1,4 +1,4 @@
-function getScaleDesc(intervals, savename)
+function sldesc = get_sl_desc(intervals)
 %% do the counting
 edges = [0, 2, 4.5, 7, 10, 22.5, 40];  % edges in sec
 edges = [edges, Inf];
@@ -29,4 +29,6 @@ end
 % hist3([inter_block(1:end-1), inter_block(2:end)], 'Edges', edges, 'CdataMode','auto')
 % colorbar
 % view(2)
-save(savename, 'transmat', 'h_data')
+transmat = reshape(transmat, 1, 49);
+sldesc = [transmat, h_data];
+close all

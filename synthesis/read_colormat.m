@@ -1,53 +1,27 @@
-clear
-clc
+function cdata = read_colormat(dname, partnum)
 
-dname = '.\color_info\moonrise\';
 flist = dir(dname);
-cinfo = [];
-for k = 3: length(flist)
-    fname = [dname, flist(k).name];
-    load(fname)
-    cinfo = [cinfo; info];
+
+partlen = floor((length(flist) - 2) / partnum);
+cdata = [];
+for p = 1: partnum
+    cin = [];
+    for k = 3 + (p-1) * partlen: 2 + p * partlen
+        fname = [dname, flist(k).name];
+        load(fname)
+        cin = [cin; cinfo];
+    end
+    
+    m_h = mean(cin(:,1));
+    std_h = std(cin(:,1));
+    m_s = mean(cin(:,3));
+    std_s = std(cin(:,3));
+    ske_h = skewness(cin(:,1));
+    ske_s = skewness(cin(:,3));
+    kur_h = kurtosis(cin(:,1));
+    kur_s = kurtosis(cin(:,3));
+    
+    cdata = [cdata; m_h, std_h, m_s, std_s, ske_h, ske_s, kur_h, kur_s];
+end
 end
 
-figure
-edges = {0:0.01:1-0.01 0:0.01:1-0.01};
-hist3([cinfo(:, 1), cinfo(:, 3)], 'Edges', edges, 'CdataMode','auto');
-view(2)
-
-
-figure
-edges = 0:0.02:0.3-0.02;
-subplot(3, 2, 1)
-histogram(cinfo(:, 2), edges, 'Normalization', 'probability')
-title('std-H')
-xlim([0., 0.3])
-ylim([0., 0.8])
-subplot(3, 2, 2)
-histogram(cinfo(:, 4), edges, 'Normalization', 'probability')
-title('std-S')
-xlim([0., 0.3])
-ylim([0., 0.8])
-
-subplot(3, 2, 3)
-histogram(abs(cinfo(:, 5) - cinfo(:, 1)), edges, 'Normalization', 'probability')
-title('center-peak diff-H')
-xlim([0., 0.3])
-ylim([0., 0.8])
-subplot(3, 2, 4)
-histogram(abs(cinfo(:, 6) - cinfo(:, 3)), edges, 'Normalization', 'probability')
-title('center-peak diff-S')
-xlim([0., 0.3])
-ylim([0., 0.8])
-
-edges = 0:0.05:1-0.05;
-subplot(3, 2, 5)
-histogram(cinfo(:, 7), edges, 'Normalization', 'probability')
-title('peak in cluster')
-xlim([0., 1.])
-ylim([0., 0.8])
-subplot(3, 2, 6)
-histogram(cinfo(:, 8), edges, 'Normalization', 'probability')
-title('cluster in whole')
-xlim([0., 1.])
-ylim([0., 0.8])

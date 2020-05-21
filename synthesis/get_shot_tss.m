@@ -32,8 +32,8 @@ while ~feof(foutput)
 
     scale = [scale; sc];
     hasFace = [hasFace; hf];
-    posIndex = [posIndex; pi(0)];
-    posScore = [posScore; ps(0)];
+    posIndex = [posIndex; pi(1)];
+    posScore = [posScore; ps(1)];
 end
 fclose(foutput);
 
@@ -113,8 +113,8 @@ scale_typ = [si(1) - 3, si(2) - 3];
 scale_val = [sa(1), sa(2)];
 
 
-info = [tone_typ, tone_val, sat_typ, sat_val, scale_typ, scale_val];
-save([outdir, fname, '.mat'], 'info')
+tinfo = [tone_typ, tone_val, sat_typ, sat_val, scale_typ, scale_val];
+save([outdir, fname, '.mat'], 'tinfo')
 else
     disp(fname)
 end

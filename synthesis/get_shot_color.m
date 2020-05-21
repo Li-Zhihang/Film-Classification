@@ -106,7 +106,7 @@ if ~isempty(pks_val)
     % ylabel('S')
     % view(2)
     
-    info = [];
+    cinfo = [];
     cluster_idx = kmeans(cluster_coors, center_num, 'Distance', 'cityblock', 'EmptyAction', 'error', 'Start', center_index);
     for k = 1: min(center_num, 4)  % maximum 4 center
         type_coors = [];
@@ -128,10 +128,10 @@ if ~isempty(pks_val)
         std1 = std(type_coors(:, 1));
         mean2 = mean(type_coors(:, 2));
         std2 = std(type_coors(:, 2));
-        info = [info;[mean1, std1, mean2, std2, center_index(k, 1), center_index(k, 2), center_value(k) / length(type_coors), length(type_coors) / length(hsv_lighter)]];
+        cinfo = [cinfo;[mean1, std1, mean2, std2, center_index(k, 1), center_index(k, 2), center_value(k) / length(type_coors), length(type_coors) / length(hsv_lighter)]];
         
     end
-    save([outdir, fname, '.mat'], 'info')
+    save([outdir, fname, '.mat'], 'cinfo')
 end
 else
     disp(fname)

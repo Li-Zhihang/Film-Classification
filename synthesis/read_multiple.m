@@ -1,8 +1,8 @@
 clear
 clc
 
-dname = '.\outputs\tennenbaums\';
-outdir = '.\lp_info\tennenbaums\';
+dname = '.\outputs\irishman\';
+outdir = '.\lp_info\irishman\';
 mkdir(outdir)
 flist = dir(dname);
 for k = 3: length(flist)

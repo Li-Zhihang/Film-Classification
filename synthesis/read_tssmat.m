@@ -1,62 +1,47 @@
-clear
-clc
-
-dname = '.\tss_info\tennenbaums\';
+function [pdata1, pdata2] = read_tssmat(dname, partnum)
 flist = dir(dname);
-tinfo = [];
-for k = 3: length(flist)
-    fname = [dname, flist(k).name];
-    load(fname)
-    tinfo = [tinfo; info];
+pdata1 = [];
+pdata2 = [];
+tinf = [];
+for p = 3:length(flist)
+    fname = [dname, flist(p).name];
+    load(fname);
+    tinf = [tinf; tinfo];
 end
 
-%% plot
-tone_max_t = tinfo(:, 1);
-tone_max_v = tinfo(:, 3);
-sat_t = tinfo(:, 5);
-sat_v = tinfo(:, 6);
-scale_max_t = tinfo(:, 7);
-scale_max_v = tinfo(:, 9);
+partlen = floor(size(tinf, 1) / partnum);
+for q = 1:partnum
+    pinfo = tinf((q-1)*partlen + 1:q*partlen, :);
 
-figure
-subplot(3, 2, 1)
-e = -2:1:6;
-histogram(scale_max_t, e, 'Normalization', 'probability')
-title('scale type')
-xlim([-2, 7])
-ylim([0, 1])
+    e = 0:1:8;
+    to_m1t = histogram(pinfo(:, 1), e, 'Normalization', 'probability');
+    to_m1t = to_m1t.Values;
+    to_m2t = histogram(pinfo(:, 2), e, 'Normalization', 'probability');
+    to_m2t = to_m2t.Values;
 
-subplot(3, 2, 2)
-e = 0:0.1:1;
-histogram(scale_max_v, e, 'Normalization', 'probability')
-title('scale score')
-xlim([0, 1])
-ylim([0, 1])
+    e = -2:1:6;
+    sc_m1t = histogram(pinfo(:, 7), e, 'Normalization', 'probability');
+    sc_m1t = sc_m1t.Values;
+    sc_m2t = histogram(pinfo(:, 8), e, 'Normalization', 'probability');
+    sc_m2t = sc_m2t.Values;
 
-subplot(3, 2, 3)
-e = 0:1:8;
-histogram(tone_max_t, e, 'Normalization', 'probability')
-title('tone type')
-xlim([0, 9])
-ylim([0, 1])
+    e = 0:1:3;
+    sat_mt = histogram(pinfo(:, 5), e, 'Normalization', 'probability');
+    sat_mt = sat_mt.Values;
 
-subplot(3, 2, 4)
-e = 0:0.1:1;
-histogram(tone_max_v, e, 'Normalization', 'probability')
-title('tone score')
-xlim([0, 1])
-ylim([0, 1])
+    e = 0:0.1:1;
+    sc_m1v = histogram(pinfo(:, 9), e, 'Normalization', 'probability');
+    sc_m1v = sc_m1v.Values;
+    sc_m2v = histogram(pinfo(:, 10), e, 'Normalization', 'probability');
+    sc_m2v = sc_m2v.Values;
+    to_m1v = histogram(pinfo(:, 3), e, 'Normalization', 'probability');
+    to_m1v = to_m1v.Values;
+    to_m2v = histogram(pinfo(:, 4), e, 'Normalization', 'probability');
+    to_m2v = to_m2v.Values;
+    sa_mv = histogram(pinfo(:, 6), e, 'Normalization', 'probability');
+    sa_mv = sa_mv.Values;
 
-subplot(3, 2, 5)
-e = 0:1:3;
-histogram(sat_t, e, 'Normalization', 'probability');
-title('sat type')
-xlim([0, 4])
-ylim([0, 1])
-
-subplot(3, 2, 6)
-e = 0:0.1:1;
-histogram(sat_v, e, 'Normalization', 'probability');
-title('sat score')
-xlim([0, 1])
-ylim([0, 1])
+    close all
+    pdata1 = [pdata1; to_m1t, to_m2t, to_m1v, to_m2v, sat_mt, sa_mv];
+    pdata2 = [pdata2; sc_m1t, sc_m2t, sc_m1v, sc_m2v];
+end

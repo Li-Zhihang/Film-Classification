@@ -3,7 +3,7 @@ clc
 close all
 %% parameters
 dname = '.\indexfile\';
-partnum = 5;
+partnum = 4;
 
 sl_desc = [];
 flist = dir(dname);
@@ -31,7 +31,7 @@ for k = 3: length(flist)
     end
 end
 
-L = [4*ones(1, partnum),2*ones(1,partnum),4*ones(1, partnum),2*ones(1,partnum),5*ones(1, partnum),5*ones(1, partnum),ones(1, partnum),4*ones(1, partnum),ones(1, partnum),5*ones(1, partnum),2*ones(1,partnum),6*ones(1, partnum),ones(1, partnum),3*ones(1, partnum),3*ones(1, partnum),2*ones(1, partnum),ones(1, partnum),3*ones(1, partnum),4*ones(1, partnum),3*ones(1, partnum),5*ones(1, partnum)];
+L = [4*ones(1, partnum),2*ones(1,partnum),4*ones(1, partnum),2*ones(1,partnum),5*ones(1, partnum),5*ones(1, partnum),6*ones(1, partnum),ones(1, partnum),4*ones(1, partnum),ones(1, partnum),5*ones(1, partnum),2*ones(1,partnum),6*ones(1, partnum),6*ones(1, partnum),ones(1, partnum),3*ones(1, partnum),3*ones(1, partnum),2*ones(1, partnum),ones(1, partnum),3*ones(1, partnum),4*ones(1, partnum),3*ones(1, partnum),5*ones(1, partnum)];
 Y = tsne(sl_desc,'NumPCAComponents',30,'NumDimensions',2,'Algorithm','exact');
 figure
 gscatter(Y(:,1),Y(:,2),L)

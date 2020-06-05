@@ -118,7 +118,7 @@ def process(analyser, video_path):
         scale, hnum = analyser.get_shot_scale(imgs_hd)
         tone = analyser.get_tone(imgs)
         sat = analyser.get_saturation(imgs)
-        # sym = analyser.get_symmetry(imgs)
+        sym = analyser.get_symmetry(imgs)
 
         for k in range(imgs.shape[0]):
             for cluster in range(5):
@@ -126,16 +126,16 @@ def process(analyser, video_path):
                     color[k, cluster, 0], color[k, cluster, 1], color[k, cluster, 2]))
             foutput.write('{:d}\n'.format(tone[k]))
             foutput.write('{:d}\n'.format(sat[k]))
-            # foutput.write('{:.2f} {:.2f}\n'.format(
-            #     sym[k, 0] + sym[k, 1], sym[k, 2] + sym[k, 3]))
-            # foutput.write('{:d}\n'.format(hnum[k]))
+            foutput.write('{:.2f} {:.2f}\n'.format(
+                sym[k, 0] + sym[k, 1], sym[k, 2] + sym[k, 3]))
+            foutput.write('{:d}\n'.format(hnum[k]))
             foutput.write('{:d}\n'.format(scale[k]))
 
-            foutput.write('{:d}\n'.format(lp[2][k]))
-            foutput.write('{:d} {:d}\n'.format(lp[0][k, 0], lp[0][k, 1]))
-            foutput.write('{:.2f} {:.2f}\n'.format(lp[1][k, 0], lp[1][k, 1]))
-            # foutput.write('{:d}\n'.format(lp[0][k]))
-            # foutput.write('{:.2f}\n'.format(lp[1][k]))
+            # foutput.write('{:d}\n'.format(lp[2][k]))
+            # foutput.write('{:d} {:d}\n'.format(lp[0][k, 0], lp[0][k, 1]))
+            # foutput.write('{:.2f} {:.2f}\n'.format(lp[1][k, 0], lp[1][k, 1]))
+            foutput.write('{:d}\n'.format(lp[0][k]))
+            foutput.write('{:.2f}\n'.format(lp[1][k]))
 
     cap.release()
     foutput.close()

@@ -21,14 +21,14 @@ class LightPose(object):
 
         preds = self.model.predict(faces, batch_size=self.batch_size)
 
-        top2 = tf.nn.top_k(preds, 2)
-        light_score = top2[0].numpy()
-        light_type = top2[1].numpy()
-        # light_score1 = np.max(preds, axis=-1)
-        # light_type1 = np.argmax(preds, axis=-1)
+        # top2 = tf.nn.top_k(preds, 2)
+        # light_score = top2[0].numpy()
+        # light_type = top2[1].numpy()
+        light_score1 = np.max(preds, axis=-1)
+        light_type1 = np.argmax(preds, axis=-1)
 
-        # for k in range(datalen):
-        #     if not hasFace[k]:
-        #         light_type1[k] = -1
+        for k in range(datalen):
+            if not hasFace[k]:
+                light_type1[k] = -1
 
-        return light_type, light_score, hasFace
+        return light_type1, light_score1

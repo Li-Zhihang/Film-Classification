@@ -1,0 +1,8 @@
+.vscode
+models
+synthesis/outputs
+synthesis/indexfile
+synthesis/cam
+synthesis/color_info
+synthesis/tss_info
+synthesis/lp_info

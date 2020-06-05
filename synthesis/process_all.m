@@ -24,13 +24,13 @@ for k = 3:length(dlist)
     lpdata = [lpdata; lpd];
 end
 
-% dname = '.\color_info\';
-% dlist = dir(dname);
-% for k = 3:length(dlist)
-%     flist = dir([dname, dlist(k).name]);
-%     cd = read_colormat([dname, dlist(k).name, '\'], partnum);
-%     cdata = [cdata; cd];
-% end
+dname = '.\color_info\';
+dlist = dir(dname);
+for k = 3:length(dlist)
+    flist = dir([dname, dlist(k).name]);
+    cd = read_colormat([dname, dlist(k).name, '\'], partnum);
+    cdata = [cdata; cd];
+end
 
 dname = '.\indexfile\';
 flist = dir(dname);
@@ -39,9 +39,7 @@ for k = 3:length(flist)
     sldata = [sldata; sld];
 end
 
-L = [4*ones(1,partnum), 2*ones(1,partnum),2*ones(1,partnum),1*ones(1,partnum),5*ones(1,partnum),4*ones(1,partnum),5*ones(1,partnum),3*ones(1,partnum),1*ones(1,partnum),3*ones(1,partnum),2*ones(1,partnum),1*ones(1,partnum),4*ones(1,partnum),5*ones(1,partnum)];
+L = [4*ones(1,partnum),2*ones(1,partnum),4*ones(1,partnum),2*ones(1,partnum),1*ones(1,partnum),5*ones(1,partnum),5*ones(1,partnum),6*ones(1,partnum),1*ones(1,partnum),4*ones(1,partnum),5*ones(1,partnum),2*ones(1,partnum),3*ones(1,partnum),6*ones(1,partnum),1*ones(1,partnum),3*ones(1,partnum),2*ones(1,partnum),1*ones(1,partnum),3*ones(1,partnum),4*ones(1,partnum),3*ones(1,partnum),5*ones(1,partnum)];
+shot_data = [tsdata, scdata, lpdata, sldata, cdata];
 
-Y = tsne([tsdata, scdata, lpdata, sldata],'Algorithm','barneshut','NumPCAComponents',50,'NumDimensions',3);
-figure
-% gscatter(Y(:,1),Y(:,2),L)
-scatter3(Y(:,1),Y(:,2),Y(:,3),15,L,'filled')
+save('film_data.mat', '-v7.3', 'tsdata', 'scdata', 'lpdata', 'sldata', 'cdata', 'L')

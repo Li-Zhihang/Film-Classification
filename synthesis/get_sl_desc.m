@@ -30,5 +30,5 @@ end
 % colorbar
 % view(2)
 transmat = reshape(transmat, 1, 49);
-sldesc = [transmat, h_data];
+sldesc = [transmat, mean(intervals), std(intervals), skewness(intervals), kurtosis(intervals)];
 close all

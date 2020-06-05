@@ -44,4 +44,9 @@ for q = 1:partnum
     close all
     pdata1 = [pdata1; to_m1t, to_m2t, to_m1v, to_m2v, sat_mt, sa_mv];
     pdata2 = [pdata2; sc_m1t, sc_m2t, sc_m1v, sc_m2v];
+%     tone_d = [mean(pinfo(:, 1)),std(pinfo(:, 1))];
+%     sat_d = [mean(pinfo(:, 5)),std(pinfo(:, 5))];
+%     scal_d = [mean(pinfo(:, 7)),std(pinfo(:, 7)),skewness(pinfo(:, 7)),kurtosis(pinfo(:, 7))];
+%     pdata1 = [pdata1; tone_d, sat_d];
+%     pdata2 = [pdata2; scal_d];
 end

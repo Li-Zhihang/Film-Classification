@@ -107,13 +107,17 @@ if ~isempty(pks_val)
     % view(2)
     
     cinfo = [];
-    cluster_idx = kmeans(cluster_coors, center_num, 'Distance', 'cityblock', 'EmptyAction', 'error', 'Start', center_index);
+    cluster_idx = kmeans(cluster_coors, center_num, 'Distance', 'cityblock', 'EmptyAction', 'drop', 'Start', center_index);
     for k = 1: min(center_num, 4)  % maximum 4 center
         type_coors = [];
         for p = 1: idx_count
             if cluster_idx(p) == k
                 type_coors = [type_coors; cluster_coors(p, :)];
             end
+        end
+        
+        if isempty(type_coors)
+            continue
         end
 
 %         figure

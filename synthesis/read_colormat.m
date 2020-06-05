@@ -12,6 +12,12 @@ for p = 1: partnum
         cin = [cin; cinfo];
     end
     
+%     edges = 0:0.1:1;
+%     h_hist = histogram(cin(:,1), edges,'Normalization', 'probability');
+%     m_h = h_hist.Values;
+%     s_hist = histogram(cin(:,3), edges,'Normalization', 'probability');
+%     s_h = s_hist.Values;
+    
     m_h = mean(cin(:,1));
     std_h = std(cin(:,1));
     m_s = mean(cin(:,3));
